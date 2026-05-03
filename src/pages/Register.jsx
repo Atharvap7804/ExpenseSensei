@@ -50,7 +50,7 @@ const Register = () => {
       if (res.success) {
         alert("Operative Registered. 🔐");
         navigate('/login');
-      } else { alert(res.msg); }
+      } else { alert(res.message || "Registration error"); }
     } catch (err) { alert("Registration error."); } finally { setLoading(false); }
   };
 

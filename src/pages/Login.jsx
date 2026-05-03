@@ -25,7 +25,7 @@ const Login = () => {
           alert("Security Code Dispatched! 🔐");
           navigate('/verify-access'); 
         }
-      } else { alert(res.msg || "Invalid Credentials"); }
+      } else { alert(res.message|| res.mes || "Invalid Credentials"); }
     } catch (err) { alert("Server error."); } finally { setLoading(false); }
   };
 
