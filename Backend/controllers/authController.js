@@ -15,9 +15,11 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  connectionTimeout: 10000, 
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
-
 transporter.verify((err, success) => {
   if (err) console.log("❌ MAIL ERROR:", err);
   else console.log("✅ MAIL READY");
