@@ -5,28 +5,28 @@ const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Goal = require("../models/Goal");
 const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
-transporter.verify((error, success) => {
-  if (error) {
-    console.log(error.message);
-  } else {
-    console.log("Mail Server is Ready to Send!");
-  }
+transporter.verify((err, success) => {
+  if (err) console.log("❌ MAIL ERROR:", err);
+  else console.log("✅ MAIL READY");
 });
 exports.registerUser = async (req, res) => {
   try {
     const { name, email, password, gender, mobile, limit } = req.body;
     const passwordRegex = /^(?=.*[A-Z])(?=(?:.*\d){3,})(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     if (!passwordRegex.test(password)) {
-      return res.status(400).json({ msg: "Security Key Weak! Requirement: 8+ chars, 1 Capital, 1 Special, 3 Numbers." });
+      return res.status(400).json({ message: "Security Key Weak! Requirement: 8+ chars, 1 Capital, 1 Special, 3 Numbers." });
     }
     if (!name || !email || !password || !gender || !mobile) {
-      return res.status(400).json({ msg: "All fields are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
     const existingUser = await User.findOne({ email });
     if (existingUser) { return res.status(400).json({ message: "User already exists" }); }
