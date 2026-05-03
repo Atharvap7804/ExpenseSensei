@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+*::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none; 
+  scrollbar-width: none;  
+}
+.chatbot::-webkit-scrollbar {
+  display: none;
+}

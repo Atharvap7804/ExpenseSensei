@@ -1,0 +1,43 @@
+# --- Dependencies & Build ---
+node_modules/
+dist/
+dist-ssr/
+build/
+.cache/
+
+# --- Environment Secrets (CRITICAL) ---
+.env
+.env.local
+.env.*.local
+*.env
+# Ignore the specific secrets for Sensei Security
+EMAIL_PASS
+MONGO_URI
+
+# --- Logs ---
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Editor & System Files ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+
+# --- Testing ---
+/coverage
+/.nyc_output
+
+# --- Project Specific ---
+# If you generate local audit CSVs for testing, ignore them here
+*.csv
