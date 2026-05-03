@@ -6,8 +6,8 @@ const Transaction = require("../models/Transaction");
 const Goal = require("../models/Goal");
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
