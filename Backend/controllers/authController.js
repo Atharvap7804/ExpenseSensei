@@ -179,7 +179,7 @@ exports.sendOTP = async (req, res) => {
   try {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // 🔥 Use findByIdAndUpdate to force an immediate write to the DB
+    // 1. Save OTP to DB first (This is fast!)
     const user = await User.findByIdAndUpdate(
       req.user.id, 
       { currentOTP: otp }, 
@@ -188,6 +188,7 @@ exports.sendOTP = async (req, res) => {
     
     if (!user) return res.status(404).json({ success: false, msg: "User not found" });
 
+    // 2. Prepare the mail
     const mailOptions = {
       from: `"Sensei Security" <${process.env.EMAIL_USER}>`,
       to: user.email, 
@@ -195,14 +196,19 @@ exports.sendOTP = async (req, res) => {
       text: `Your ExpenseSensei verification code is ${otp}`
     };
 
-    await transporter.sendMail(mailOptions);
-    return res.json({ success: true, msg: "OTP sent" });
+    // 3. 🔥 REMOVE 'await' here! 
+    // This lets the code move on even if the email is slow.
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) console.log("Delayed Mail Error:", error.message);
+      else console.log("📧 OTP Email finally sent to:", user.email);
+    });
+
+    // 4. Respond to frontend immediately so the 'Pending' clears
+    return res.json({ success: true, msg: "OTP Processed" });
 
   } catch (error) {
     console.error("SEND_OTP_ERROR:", error);
-    if (!res.headersSent) {
-      return res.status(500).json({ success: false, message: "Server error" });
-    }
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
