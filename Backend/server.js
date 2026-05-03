@@ -14,7 +14,7 @@ const ocrRoutes = require('./routes/ocrRoutes');
 const app = express();
 
 app.use(cors({
-  origin: '*', // Allow all origins for Web
+  origin: 'https://your-frontend.vercel.app', // Allow all origins for Web
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
