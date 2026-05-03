@@ -1,13 +1,3 @@
-
-
-
-
-
-
-
-
-
-
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -39,7 +29,7 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ msg: "All fields are required" });
     }
     const existingUser = await User.findOne({ email });
-    if (existingUser) { return res.status(400).json({ msg: "User already exists" }); }
+    if (existingUser) { return res.status(400).json({ message: "User already exists" }); }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       name,
@@ -82,12 +72,12 @@ exports.loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -96,7 +86,7 @@ exports.loginUser = async (req, res) => {
 
     res.json({
       success: true,
-      msg: "Login successful",
+      message: "Login successful",
       token,
       user: {
         id: user._id,
@@ -108,7 +98,7 @@ exports.loginUser = async (req, res) => {
     });
   } catch (err) {
     console.log("ERROR:", err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -118,7 +108,7 @@ exports.updateLimit = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     if (!user) {
-      return res.status(404).json({ success: false, msg: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const today = new Date();
@@ -171,13 +161,13 @@ exports.deleteAccount = async (req, res) => {
     const deletedUser = await User.findByIdAndDelete(userId);
 
     if (!deletedUser) {
-      return res.status(404).json({ success: false, msg: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, msg: "Account and associated data purged successfully" });
+    res.json({ success: true, message: "Account and associated data purged successfully" });
   } catch (err) {
     console.error("DELETE_ACCOUNT_ERROR:", err);
-    res.status(500).json({ success: false, msg: "Server error during deletion" });
+    res.status(500).json({ success: false, message: "Server error during deletion" });
   }
 };
 
@@ -209,7 +199,7 @@ exports.sendOTP = async (req, res) => {
   } catch (error) {
     console.error("SEND_OTP_ERROR:", error);
     if (!res.headersSent) {
-      return res.status(500).json({ success: false, error: error.message });
+      return res.status(500).json({ success: false, message: "Server error" });
     }
   }
 };
