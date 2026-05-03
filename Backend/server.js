@@ -14,7 +14,7 @@ const ocrRoutes = require('./routes/ocrRoutes');
 const app = express();
 
 app.use(cors({
-  origin: 'https://expense-sensei.vercel.app/',
+  origin: 'https://expense-sensei.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
