@@ -5,20 +5,16 @@ const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Goal = require("../models/Goal");
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  service: "gmail",
+  service: 'gmail', // Let Nodemailer handle the host/port automatically
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false
-  },
-  connectionTimeout: 10000, 
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
+  // 🔥 Forces the connection to bypass IPv6/DNS hang issues on Render
+  pool: true,
+  maxConnections: 1,
+  rateDelta: 20000,
+  rateLimit: 5,
 });
 transporter.verify((err, success) => {
   if (err) console.log("❌ MAIL ERROR:", err);
