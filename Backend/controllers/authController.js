@@ -117,7 +117,7 @@ exports.sendOTP = async (req, res) => {
       </div>`;
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { name: "Sensei Security", email: process.env.EMAIL_FROM },
+      sender: { name: "Sensei Security", email: process.env.EMAIL_USER },
       to: [{ email: user.email }],
       subject: `Access Code: ${otp} (Valid for 5m)`,
       htmlContent: otpHtml
