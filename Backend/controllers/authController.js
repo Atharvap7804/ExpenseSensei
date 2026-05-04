@@ -1,12 +1,11 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const axios = require("axios"); // 🔥 Using Axios for Brevo API calls[cite: 4]
-
+const axios = require("axios"); 
 const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Goal = require("../models/Goal");
 
-// Helper function for Brevo API calls to keep code clean
+
 const sendBrevoEmail = async (toEmail, subject, htmlContent) => {
   try {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
@@ -51,7 +50,7 @@ exports.registerUser = async (req, res) => {
     
     const savedUser = await newUser.save();
 
-    // 🔥 Send Welcome Email via Brevo API
+    // Send Welcome Email 
     const welcomeHtml = `<strong>Hello, ${savedUser.name}! 👋 Your account is now active on ExpenseSensei.</strong>`;
     sendBrevoEmail(savedUser.email, "Welcome to ExpenseSensei! ✨", welcomeHtml);
 
@@ -95,8 +94,6 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// controllers/authController.js
-
 exports.sendOTP = async (req, res) => {
   try {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -104,11 +101,11 @@ exports.sendOTP = async (req, res) => {
     
     const user = await User.findByIdAndUpdate(
       req.user.id, 
-      { currentOTP: otp, otpExpires: expiry }, // Store expiry in DB
+      { currentOTP: otp, otpExpires: expiry }, 
       { new: true }
     );
 
-    // Update the Mail Content to mention the 5-minute limit
+   
     const otpHtml = `
       <div style="font-family: sans-serif; padding: 20px; background: #000; color: #fff; border-radius: 20px;">
         <h2 style="color: #a855f7;">Sensei Access Code</h2>
@@ -134,7 +131,7 @@ exports.verifyOTP = async (req, res) => {
     const { otp } = req.body;
     const user = await User.findById(req.user.id);
 
-    // 🔥 Check if OTP exists and is NOT expired
+ 
     if (!user || !user.currentOTP || !user.otpExpires || new Date() > user.otpExpires) {
       return res.status(400).json({ success: false, message: "Code expired. Request a new one." });
     }

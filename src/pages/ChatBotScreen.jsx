@@ -179,7 +179,7 @@ export default function ChatBotScreen() {
             <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[90%] p-4 rounded-2xl text-sm font-bold shadow-lg ${msg.sender === "user" ? "bg-purple-600 text-white" : "bg-zinc-900 text-zinc-300"}`}>
                 
-                {/* 🔥 STRUCTURED MARKDOWN RENDERING[cite: 3] */}
+           
                 {msg.sender === "bot" ? (
                   <div className="prose prose-invert prose-sm max-w-none text-zinc-300 leading-relaxed">
                     <ReactMarkdown>{msg.text}</ReactMarkdown>

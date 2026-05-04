@@ -15,7 +15,7 @@ const Navigation = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // Added Profile to the main array for easier mapping on mobile
+  
   const navLinks = [
     { name: 'Home', path: '/', icon: <FiHome size={20} /> },
     { name: 'Add', path: '/add', icon: <FiPlusCircle size={20} /> },
@@ -38,7 +38,7 @@ const Navigation = () => {
         </div>
 
         <div className="flex items-center gap-8">
-          {navLinks.slice(0, 6).map((link) => ( // Show first 6 on desktop
+          {navLinks.slice(0, 6).map((link) => ( 
             <Link 
               key={link.path}
               to={link.path}
@@ -57,7 +57,6 @@ const Navigation = () => {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation - Optimized for 7 items */}
       <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-[28px] px-2 py-2 shadow-2xl shadow-purple-900/20">
         <div className="flex justify-around items-center">
           {navLinks.map((link) => (
@@ -71,7 +70,7 @@ const Navigation = () => {
                   ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/40 -translate-y-1' 
                   : 'text-zinc-500'
               }`}>
-                {/* Scale icons down slightly to fit 7 items comfortably[cite: 7] */}
+               
                 {React.cloneElement(link.icon, { size: 18 })} 
               </div>
               <span className={`text-[8px] mt-1 font-bold uppercase tracking-tighter ${

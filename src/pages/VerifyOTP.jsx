@@ -5,7 +5,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 
 export default function VerifyOTP() {
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(60); // 60-second cooldown[cite: 4]
+  const [timer, setTimer] = useState(60); 
   const [canResend, setCanResend] = useState(false);
   const { completeVerification, isLoggedIn, isVerified } = useContext(AuthContext);
   const navigate = useNavigate();

@@ -64,7 +64,7 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Actions Sidebar */}
+          
           <div className="md:col-span-4 space-y-6">
             <button 
               onClick={handleLogout}
