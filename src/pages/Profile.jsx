@@ -10,7 +10,9 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    alert("Are you sure you want to log out? Your session will be securely terminated.");
     logout();
+    alert("Session ended. See you next time, Sensei! 👋");
     navigate('/login');
   };
 
