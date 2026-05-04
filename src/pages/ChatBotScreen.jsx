@@ -3,7 +3,7 @@ import {
   FiSend, FiCpu, FiPlus, FiTrash2, FiMenu, 
   FiX, FiMessageSquare, FiCommand, FiLoader 
 } from "react-icons/fi";
-import ReactMarkdown from 'react-markdown'; // 🔥 Essential for structured replies
+import ReactMarkdown from 'react-markdown'; 
 import { AppContext } from "../context/AppContext";
 import { AuthContext } from "../context/AuthContext";
 import api from "../services/api";
@@ -119,7 +119,7 @@ export default function ChatBotScreen() {
   return (
     <div className="flex h-screen bg-[#050505] text-white overflow-hidden relative font-sans">
       
-      {/* SIDEBAR / DRAWER */}
+
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-zinc-900 flex flex-col p-6 border-r border-white/5 transition-transform duration-300 lg:static lg:translate-x-0 ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex justify-between items-center mb-8 lg:hidden">
           <span className="font-black text-[10px] uppercase tracking-widest text-purple-500">History</span>
@@ -191,7 +191,7 @@ export default function ChatBotScreen() {
             </div>
           ))}
 
-          {/* SENSEI THINKING LOADER[cite: 3] */}
+         
           {isTyping && (
             <div className="flex justify-start animate-pulse">
               <div className="bg-zinc-900/50 p-4 rounded-2xl flex items-center gap-3 border border-white/5">
