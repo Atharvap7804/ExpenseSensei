@@ -1,13 +1,30 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { Resend } = require("resend"); // 🔥 NEW: Using API instead of SMTP
+const axios = require("axios"); // 🔥 Using Axios for Brevo API calls[cite: 4]
 
 const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Goal = require("../models/Goal");
 
-// Initialize Resend with your API Key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Helper function for Brevo API calls to keep code clean
+const sendBrevoEmail = async (toEmail, subject, htmlContent) => {
+  try {
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
+      sender: { name: "ExpenseSensei", email: process.env.EMAIL_FROM },
+      to: [{ email: toEmail }],
+      subject: subject,
+      htmlContent: htmlContent
+    }, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(`📧 Email sent successfully to: ${toEmail}`);
+  } catch (error) {
+    console.error("Brevo API Error:", error.response?.data || error.message);
+  }
+};
 
 exports.registerUser = async (req, res) => {
   try {
@@ -34,13 +51,9 @@ exports.registerUser = async (req, res) => {
     
     const savedUser = await newUser.save();
 
-    // 🔥 Send Welcome Email via Resend API
-    await resend.emails.send({
-      from: 'ExpenseSensei <onboarding@resend.dev>',
-      to: savedUser.email,
-      subject: "Welcome to ExpenseSensei! ✨",
-      html: `<strong>Hello, ${savedUser.name}! 👋 Your account is now active.</strong>`
-    }).catch(err => console.log("Welcome Email Error:", err.message));
+    // 🔥 Send Welcome Email via Brevo API
+    const welcomeHtml = `<strong>Hello, ${savedUser.name}! 👋 Your account is now active on ExpenseSensei.</strong>`;
+    sendBrevoEmail(savedUser.email, "Welcome to ExpenseSensei! ✨", welcomeHtml);
 
     const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
@@ -94,28 +107,29 @@ exports.sendOTP = async (req, res) => {
 
     if (!user) return res.status(404).json({ success: false, msg: "User not found" });
 
-    // 🔥 FOR MASTER'S DEMO: Always log the code in case of API delays
+    // 🔥 LOG FOR RECRUITER BYPASS: Just in case they use a fake email
     console.log("-----------------------------------------");
     console.log(`🔑 SENSEI ACCESS CODE FOR ${user.email}: [ ${otp} ]`);
     console.log("-----------------------------------------");
 
-    // 🔥 NEW: Send OTP via Resend API (HTTPS based, won't be blocked)
-    const { data, error } = await resend.emails.send({
-      from: 'Sensei Security <onboarding@resend.dev>',
-      to: user.email,
+    // 🔥 Send OTP via Brevo API[cite: 4]
+    const otpHtml = `<p>Your ExpenseSensei verification code is: <strong>${otp}</strong></p>`;
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
+      sender: { name: "Sensei Security", email: process.env.EMAIL_FROM },
+      to: [{ email: user.email }],
       subject: `Access Code: ${otp}`,
-      html: `<p>Your ExpenseSensei verification code is: <strong>${otp}</strong></p>`
+      htmlContent: otpHtml
+    }, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json'
+      }
     });
-
-    if (error) {
-      console.error("Resend Dispatch Error:", error.message);
-      return res.status(500).json({ success: false, msg: "Mail server error" });
-    }
 
     return res.json({ success: true, msg: "OTP Sent Successfully" });
 
   } catch (error) {
-    console.error("SEND_OTP_ERROR:", error);
+    console.error("SEND_OTP_ERROR:", error.response?.data || error.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -140,7 +154,6 @@ exports.verifyOTP = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 exports.updateLimit = async (req, res) => {
   try {
@@ -182,31 +195,22 @@ exports.updateLimit = async (req, res) => {
   }
 };
 
-
 exports.deleteAccount = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // 1. Delete all transactions belonging to this user
     await Transaction.deleteMany({ user: userId });
-
-    // 2. Delete all goals belonging to this user
     await Goal.deleteMany({ user: userId });
-
-    // 3. Optional Safeguard: Wipe goals with no user (orphans)
-    // This removes that "Hero Xtreme" goal you saw in Atlas
     await Goal.deleteMany({ user: null });
 
-    // 4. Finally delete the user
     const deletedUser = await User.findByIdAndDelete(userId);
 
     if (!deletedUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, message: "Account and associated data purged successfully" });
+    res.json({ success: true, message: "Account purged successfully" });
   } catch (err) {
-    console.error("DELETE_ACCOUNT_ERROR:", err);
-    res.status(500).json({ success: false, message: "Server error during deletion" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
