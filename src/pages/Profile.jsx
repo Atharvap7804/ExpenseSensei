@@ -10,7 +10,6 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    alert("Are you sure you want to log out? Your session will be securely terminated.");
     logout();
     alert("Session ended. See you next time, Sensei! 👋");
     navigate('/login');
@@ -22,6 +21,7 @@ const Profile = () => {
       const success = await deleteUserAccount();
       if (success) {
         logout();
+        alert("Account deleted. We'll miss you, Sensei! 👋");
         navigate('/register');
       }
     }

@@ -47,10 +47,12 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    alert("Are you sure you want to log out? Your session will be securely terminated.");
     localStorage.clear();
     setUser(null);
     setIsLoggedIn(false);
     setIsVerified(false);
+    alert("Session ended. See you next time, Sensei! 👋");
   };
 
   return (
