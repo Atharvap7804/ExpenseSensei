@@ -52,7 +52,6 @@ export function AuthProvider({ children }) {
     setUser(null);
     setIsLoggedIn(false);
     setIsVerified(false);
-    alert("Session ended. See you next time, Sensei! 👋");
   };
 
   return (
