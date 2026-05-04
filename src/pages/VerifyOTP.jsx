@@ -47,6 +47,7 @@ export default function VerifyOTP() {
     try {
       const res = await api.post('/api/auth/verify-otp', { otp: otp.trim() });
       if (res.data.success) {
+        alert("Identity verified! Welcome back, Sensei. 🔓");
         completeVerification(); 
         navigate('/');
       }
