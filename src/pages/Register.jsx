@@ -130,11 +130,7 @@ const Register = () => {
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black tracking-widest text-zinc-500">Audit Limit</label>
-                <input type="number" value={formData.limit} onChange={(e) => setFormData({...formData, limit: e.target.value})} className="w-full bg-zinc-900 border border-white/5 p-4 rounded-2xl outline-none font-bold" placeholder="50000" />
-              </div>
+              </div>  
             </div>
 
            
