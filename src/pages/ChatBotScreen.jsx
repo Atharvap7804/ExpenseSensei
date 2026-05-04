@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { FiSend, FiCpu, FiPlus, FiTrash2, FiMenu, FiX, FiMessageSquare, FiCommand } from "react-icons/fi";
+import { 
+  FiSend, FiCpu, FiPlus, FiTrash2, FiMenu, 
+  FiX, FiMessageSquare, FiCommand, FiLoader 
+} from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
 import { AuthContext } from "../context/AuthContext";
 import api from "../services/api";
@@ -12,12 +15,13 @@ export default function ChatBotScreen() {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false); // Controls the "Thinking" loader
   const [isDrawerOpen, setIsDrawerOpen] = useState(false); 
   const chatEndRef = useRef(null);
 
   const suggestions = ["50/30/20 Audit", "Emergency Fund?", "Goal Timeline"];
 
+  // Fetch all sessions on load
   useEffect(() => {
     const fetchSessions = async () => {
       try {
@@ -28,11 +32,12 @@ export default function ChatBotScreen() {
         } else {
           handleNewSession(); 
         }
-      } catch (error) { console.error(error); }
+      } catch (error) { console.error("Session Fetch Error:", error); }
     };
     fetchSessions();
   }, []);
 
+  // Load messages when active session changes
   useEffect(() => {
     if (activeSessionId) {
       const loadHistory = async () => {
@@ -40,17 +45,22 @@ export default function ChatBotScreen() {
           setMessages([]); 
           const res = await api.get(`/api/ai/history/${activeSessionId}`);
           if (res.data.success) {
-            setMessages(res.data.history.map(item => ({ id: item._id, text: item.text, sender: item.sender })));
+            setMessages(res.data.history.map(item => ({ 
+              id: item._id, 
+              text: item.text, 
+              sender: item.sender 
+            })));
           }
-        } catch (error) { console.error(error); }
+        } catch (error) { console.error("History Load Error:", error); }
       };
       loadHistory();
     }
   }, [activeSessionId]);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const handleNewSession = async () => {
     try {
@@ -60,7 +70,25 @@ export default function ChatBotScreen() {
         setActiveSessionId(res.data.session._id);
         setMessages([]);
       }
-    } catch (error) { console.error(error); }
+    } catch (error) { console.error("New Session Error:", error); }
+  };
+
+  // 🔥 NEW: Delete Session Logic
+  const handleDeleteSession = async (e, sessionId) => {
+    e.stopPropagation(); // Prevents switching to the session while deleting it[cite: 3]
+    if (!window.confirm("Purge this financial audit session?")) return;
+
+    try {
+      const res = await api.delete(`/api/ai/session/${sessionId}`);
+      if (res.data.success) {
+        const updatedSessions = sessions.filter(s => s._id !== sessionId);
+        setSessions(updatedSessions);
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(updatedSessions.length > 0 ? updatedSessions[0]._id : null);
+          setMessages([]);
+        }
+      }
+    } catch (error) { console.error("Delete Error:", error); }
   };
 
   const handleSend = async (userText) => {
@@ -70,7 +98,7 @@ export default function ChatBotScreen() {
     const userMsg = { id: Date.now().toString(), text: textToSend, sender: "user" };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
-    setIsTyping(true);
+    setIsTyping(true); // Trigger "Sensei Thinking"[cite: 3]
 
     try {
       const res = await api.post("/api/ai/chat", {
@@ -79,15 +107,23 @@ export default function ChatBotScreen() {
         userData: { name: user?.name, balance, expense, limit, activeGoal }
       });
       if (res.data.success) {
-        setMessages((prev) => [...prev, { id: Date.now().toString(), text: res.data.reply, sender: "bot" }]);
+        setMessages((prev) => [...prev, { 
+          id: Date.now().toString(), 
+          text: res.data.reply, 
+          sender: "bot" 
+        }]);
       }
-    } catch (error) { console.error(error); } finally { setIsTyping(false); }
+    } catch (error) { 
+      console.error("Chat Error:", error); 
+    } finally { 
+      setIsTyping(false); // Hide loader[cite: 3]
+    }
   };
 
   return (
-    <div className="flex h-screen bg-[#050505] text-white overflow-hidden relative">
+    <div className="flex h-screen bg-[#050505] text-white overflow-hidden relative font-sans">
       
-      {/* MOBILE DRAWER: Session History Hamburger */}
+      {/* SIDEBAR / DRAWER */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-zinc-900 flex flex-col p-6 border-r border-white/5 transition-transform duration-300 lg:static lg:translate-x-0 ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex justify-between items-center mb-8 lg:hidden">
           <span className="font-black text-[10px] uppercase tracking-widest text-purple-500">History</span>
@@ -99,7 +135,6 @@ export default function ChatBotScreen() {
           className="w-full flex items-center justify-center gap-2 p-4 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest mb-10 hover:bg-zinc-200 transition-all active:scale-95"
         >
           <FiPlus /> New Session
-          
         </button>
 
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-2">
@@ -107,12 +142,20 @@ export default function ChatBotScreen() {
             <div 
               key={session._id}
               onClick={() => { setActiveSessionId(session._id); setIsDrawerOpen(false); }}
-              className={`p-3 rounded-xl cursor-pointer transition-all border ${activeSessionId === session._id ? 'bg-purple-600/20 border-purple-500/30' : 'hover:bg-white/5 border-transparent'}`}
+              className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${activeSessionId === session._id ? 'bg-purple-600/20 border-purple-500/30' : 'hover:bg-white/5 border-transparent'}`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <FiMessageSquare size={14} className={activeSessionId === session._id ? 'text-purple-400' : 'text-zinc-500'} />
                 <span className="text-xs truncate font-bold">{session.title}</span>
               </div>
+              
+              {/* DELETE ICON[cite: 3] */}
+              <button 
+                onClick={(e) => handleDeleteSession(e, session._id)}
+                className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded-lg transition-all"
+              >
+                <FiTrash2 size={12} />
+              </button>
             </div>
           ))}
         </div>
@@ -128,61 +171,72 @@ export default function ChatBotScreen() {
               <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg"><FiCpu size={20} /></div>
               <div>
                 <h2 className="text-xs md:text-sm font-black uppercase tracking-widest">Sensei Core</h2>
-                <span className="text-[8px] font-black text-green-500 uppercase">Online</span>
+                <span className="text-[8px] font-black text-green-500 uppercase tracking-tighter">AI Analysis Active</span>
               </div>
             </div>
           </div>
           <FiCommand className="hidden md:block text-zinc-600" />
         </header>
 
+        {/* CHAT AREA */}
         <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 no-scrollbar w-full max-w-4xl mx-auto">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-bold shadow-lg ${msg.sender === "user" ? "bg-purple-600 text-white" : "bg-zinc-900 text-zinc-300"}`}>{msg.text}</div>
+              <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-bold shadow-lg ${msg.sender === "user" ? "bg-purple-600 text-white" : "bg-zinc-900 text-zinc-300"}`}>
+                {msg.text}
+              </div>
             </div>
           ))}
+
+          {/* 🔥 SENSEI THINKING LOADER[cite: 3] */}
+          {isTyping && (
+            <div className="flex justify-start animate-pulse">
+              <div className="bg-zinc-900/50 p-4 rounded-2xl flex items-center gap-3 border border-white/5">
+                <FiLoader className="animate-spin text-purple-500" size={14} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Sensei is thinking...</span>
+              </div>
+            </div>
+          )}
           <div ref={chatEndRef} />
         </div>
 
-       
+        {/* FOOTER & INPUT */}
         <footer className="w-full shrink-0 bg-[#050505]/80 backdrop-blur-md border-t border-white/5 pb-28 lg:pb-8">
-  <div className="max-w-4xl mx-auto px-4 py-3 md:px-10 md:py-6">
-    
-   
-    <div className="flex gap-2 mb-4 overflow-x-auto overflow-y-hidden whitespace-nowrap pb-2 no-scrollbar" style={{ webkitOverflowScrolling: 'touch' }}>
-      {suggestions.map((s, i) => (
-        <button 
-          key={i} 
-          onClick={() => handleSend(s)}
-          className="inline-block px-4 py-2 bg-zinc-900 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all flex-shrink-0"
-        >
-          {s}
-        </button>
-      ))}
-    </div>
+          <div className="max-w-4xl mx-auto px-4 py-3 md:px-10 md:py-6">
+            
+            {/* SUGGESTIONS */}
+            <div className="flex gap-2 mb-4 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
+              {suggestions.map((s, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => handleSend(s)}
+                  className="inline-block px-4 py-2 bg-zinc-900 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all flex-shrink-0"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
 
-   
-    <div className="flex items-center gap-2 bg-zinc-900 border border-white/5 rounded-2xl p-1.5 shadow-2xl focus-within:border-purple-600 transition-all w-full box-border">
-      <input
-        className="flex-1 min-w-0 bg-transparent px-3 py-2 md:py-3 text-sm font-medium outline-none placeholder-zinc-700 text-white"
-        placeholder={activeSessionId ? "Ask Sensei..." : "Select a session..."}
-        value={input}
-        disabled={isTyping || !activeSessionId}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-      />
-      
-      
-      <button 
-        onClick={() => handleSend(input)}
-        disabled={isTyping || !activeSessionId}
-        className="flex-shrink-0 bg-purple-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center hover:bg-purple-700 transition-all active:scale-95 shadow-lg shadow-purple-600/20"
-      >
-        <FiSend size={18} />
-      </button>
-    </div>
-  </div>
-</footer>
+            {/* INPUT BOX */}
+            <div className="flex items-center gap-2 bg-zinc-900 border border-white/5 rounded-2xl p-1.5 shadow-2xl focus-within:border-purple-600 transition-all w-full">
+              <input
+                className="flex-1 min-w-0 bg-transparent px-3 py-2 md:py-3 text-sm font-medium outline-none placeholder-zinc-700 text-white"
+                placeholder={activeSessionId ? "Consult Sensei..." : "Select history to begin..."}
+                value={input}
+                disabled={isTyping || !activeSessionId}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
+              />
+              <button 
+                onClick={() => handleSend(input)}
+                disabled={isTyping || !activeSessionId}
+                className="flex-shrink-0 bg-purple-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center hover:bg-purple-700 transition-all active:scale-95 shadow-lg"
+              >
+                <FiSend size={18} />
+              </button>
+            </div>
+          </div>
+        </footer>
       </main>
       
       {isDrawerOpen && <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsDrawerOpen(false)} />}
