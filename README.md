@@ -30,7 +30,7 @@ An AI-powered expense management application that helps you track, analyze, and 
 - **JWT Authentication** - Secure token-based auth
 - **Bcrypt** - Password hashing
 - **Tesseract.js 7.0** - OCR for receipt scanning
-- **Nodemailer 8.0** - Email notifications
+- **Brevo (formerly Sendinblue)** - Email notifications
 - **node-cron 4.2** - Task scheduling
 - **CORS 2.8** - Cross-origin support
 
@@ -71,8 +71,7 @@ npm install
 # MONGODB_URI=your_mongodb_connection_string
 # GOOGLE_API_KEY=your_google_generative_ai_key
 # JWT_SECRET=your_jwt_secret
-# EMAIL_USER=your_email@gmail.com
-# EMAIL_PASSWORD=your_email_password
+# BREVO_API_KEY=your_brevo_api_key
 
 # Start the server
 node index.js
@@ -112,7 +111,7 @@ ExpenseSensei/
 - Environment-based configuration for sensitive data
 
 ### 📧 Features in Development
-- Email notifications for budget alerts
+- Email notifications for budget alerts (via Brevo)
 - Scheduled reports and summaries
 - Expense categorization automation
 - Budget planning and forecasting
