@@ -9,7 +9,7 @@ const Goal = require('../models/Goal');
 exports.chatWithSensei = async (req, res) => {
   try {
     const { message, userData, sessionId } = req.body;
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" })
     const userId = req.user.id;
     await Chat.create({
       user: userId,
