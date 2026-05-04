@@ -95,43 +95,36 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+// controllers/authController.js
+
 exports.sendOTP = async (req, res) => {
   try {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
     
     const user = await User.findByIdAndUpdate(
       req.user.id, 
-      { currentOTP: otp }, 
+      { currentOTP: otp, otpExpires: expiry }, // Store expiry in DB
       { new: true }
     );
 
-    if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+    // Update the Mail Content to mention the 5-minute limit
+    const otpHtml = `
+      <div style="font-family: sans-serif; padding: 20px; background: #000; color: #fff; border-radius: 20px;">
+        <h2 style="color: #a855f7;">Sensei Access Code</h2>
+        <p>Your verification code is: <b style="font-size: 24px;">${otp}</b></p>
+        <p style="color: #666; font-size: 12px;">This code is valid for 5 minutes only. Do not share it.</p>
+      </div>`;
 
-    // 🔥 LOG FOR RECRUITER BYPASS: Just in case they use a fake email
-    console.log("-----------------------------------------");
-    console.log(`🔑 SENSEI ACCESS CODE FOR ${user.email}: [ ${otp} ]`);
-    console.log("-----------------------------------------");
-
-    // 🔥 Send OTP via Brevo API[cite: 4]
-    const otpHtml = `<p>Your ExpenseSensei verification code is: <strong>${otp}</strong></p>`;
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { name: "Sensei Security", email: process.env.EMAIL_USER },
+      sender: { name: "Sensei Security", email: process.env.EMAIL_FROM },
       to: [{ email: user.email }],
-      subject: `Access Code: ${otp}`,
+      subject: `Access Code: ${otp} (Valid for 5m)`,
       htmlContent: otpHtml
-    }, {
-      headers: {
-        'api-key': process.env.BREVO_API_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
+    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
 
-    return res.json({ success: true, msg: "OTP Sent Successfully" });
-
-  } catch (error) {
-    console.error("SEND_OTP_ERROR:", error.response?.data || error.message);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+    return res.json({ success: true, msg: "OTP Sent" });
+  } catch (error) { res.status(500).json({ success: false }); }
 };
 
 exports.verifyOTP = async (req, res) => {
@@ -139,20 +132,20 @@ exports.verifyOTP = async (req, res) => {
     const { otp } = req.body;
     const user = await User.findById(req.user.id);
 
-    if (!user || !user.currentOTP) {
-      return res.status(400).json({ success: false, message: "OTP expired." });
+    // 🔥 Check if OTP exists and is NOT expired
+    if (!user || !user.currentOTP || !user.otpExpires || new Date() > user.otpExpires) {
+      return res.status(400).json({ success: false, message: "Code expired. Request a new one." });
     }
 
     if (user.currentOTP.trim() === otp.trim()) {
       user.currentOTP = null; 
+      user.otpExpires = null;
       await user.save();
       return res.status(200).json({ success: true, message: "Identity verified." });
     } else {
       return res.status(400).json({ success: false, message: "Invalid code." });
     }
-  } catch (err) {
-    return res.status(500).json({ success: false, message: "Server error" });
-  }
+  } catch (err) { res.status(500).json({ success: false }); }
 };
 
 exports.updateLimit = async (req, res) => {
