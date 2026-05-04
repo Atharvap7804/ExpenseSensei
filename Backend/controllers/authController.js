@@ -10,7 +10,7 @@ const Goal = require("../models/Goal");
 const sendBrevoEmail = async (toEmail, subject, htmlContent) => {
   try {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { name: "ExpenseSensei", email: process.env.EMAIL_FROM },
+      sender: { name: "ExpenseSensei", email: process.env.EMAIL_USER },
       to: [{ email: toEmail }],
       subject: subject,
       htmlContent: htmlContent
@@ -115,7 +115,7 @@ exports.sendOTP = async (req, res) => {
     // 🔥 Send OTP via Brevo API[cite: 4]
     const otpHtml = `<p>Your ExpenseSensei verification code is: <strong>${otp}</strong></p>`;
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { name: "Sensei Security", email: process.env.EMAIL_FROM },
+      sender: { name: "Sensei Security", email: process.env.EMAIL_USER },
       to: [{ email: user.email }],
       subject: `Access Code: ${otp}`,
       htmlContent: otpHtml
