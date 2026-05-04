@@ -124,7 +124,9 @@ exports.sendOTP = async (req, res) => {
     }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
 
     return res.json({ success: true, msg: "OTP Sent" });
-  } catch (error) { res.status(500).json({ success: false }); }
+  } catch (error) { 
+    console.error(error);
+    res.status(500).json({ success: false }); }
 };
 
 exports.verifyOTP = async (req, res) => {
